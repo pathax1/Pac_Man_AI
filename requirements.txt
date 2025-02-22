@@ -1,0 +1,13 @@
+pygame==2.5.2          # For game rendering and controls
+gym==0.26.2            # To create the RL environment
+numpy==1.24.2          # For numerical operations
+torch==2.0.1           # For implementing DQN models (PyTorch-based)
+matplotlib==3.7.1      # For visualization of training progress
+flask==2.2.5           # For deploying the game via a web interface
+pygame==2.5.2
+gym==0.26.2
+numpy==1.24.2
+torch==2.0.1
+flask==2.2.5
+matplotlib==3.7.1
+scipy==1.10.0

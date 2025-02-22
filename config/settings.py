@@ -1,0 +1,35 @@
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 640
+FPS = 60
+TILE_SIZE = 40
+POWER_PELLET_DURATION = 15
+
+# Colors
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+YELLOW = (255, 255, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+PINK = (255, 105, 180)
+ORANGE = (255, 165, 0)
+DARK_GREY = (50, 50, 50)
+
+# Rewards
+REWARD_PELLET = 10
+REWARD_POWER_PELLET = 30
+REWARD_EAT_GHOST = 50
+REWARD_EMPTY = -2
+REWARD_WALL = -5   # ✅ Added to fix unresolved reference error
+REWARD_GHOST_COLLISION = -100
+REWARD_GAME_WIN = 150
+
+# Map generation settings
+NUM_WALLS = 30
+NUM_PELLETS = 40
+NUM_POWER_PELLETS = 4
+
+# Ghost settings
+GHOST_SPEED = 2
+
+# Game modes
+GAME_MODES = ["Classic", "Survival", "Speed"]
