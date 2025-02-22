@@ -1,57 +1,89 @@
 import gym
-from gym import spaces
 import numpy as np
-from environment.map_generator import generate_map
+import random
+from gym import spaces
+from config.settings import (
+    MAZE_LAYOUT, MAZE_WIDTH, MAZE_HEIGHT,
+    WALL, PELLET, POWER,
+    PELLET_REWARD, POWER_REWARD, STEP_PENALTY, GHOST_COLLISION_PENALTY
+)
 
 class PacmanEnv(gym.Env):
     """
-    Gym environment for the Pac-Man game with support for different agent types.
+    Gym environment for training RL on a tile-based Pac-Man maze.
+    Pac-Man moves in discrete steps, ghosts move randomly.
     """
-    def __init__(self, agent_type="dqn"):
-        super(PacmanEnv, self).__init__()
-        self.agent_type = agent_type.lower()
-        self.grid_size = (15, 15)  # Example grid size
-        self.map = generate_map(self.grid_size)
-
-        # Define action and observation spaces
-        self.action_space = spaces.Discrete(4)  # Actions: 0-Up, 1-Down, 2-Left, 3-Right
-        self.observation_space = spaces.Box(low=0, high=4, shape=self.grid_size, dtype=np.int8)
-
-        # Initialize game state
+    def __init__(self):
+        super().__init__()
+        self.observation_space = spaces.Box(
+            low=0, high=3,
+            shape=(MAZE_HEIGHT, MAZE_WIDTH),
+            dtype=np.int32
+        )
+        self.action_space = spaces.Discrete(4)
+        self.maze = None
+        self.pacman_pos = None
+        self.ghosts = None
+        self.done = False
         self.reset()
 
     def reset(self):
-        """Resets the game environment to the initial state."""
-        self.map = generate_map(self.grid_size)
-        self.pacman_position = (1, 1)
-        self.ghost_positions = [(13, 13)]
-        self.score = 0
-        return self.map
+        self.maze = np.array(MAZE_LAYOUT, dtype=int)
+        # Place Pac-Man near bottom center
+        self.pacman_pos = [23, 13]
+        # 4 ghosts in the ghost house region (center)
+        self.ghosts = [[15,12],[15,13],[15,14],[15,15]]
+        self.done = False
+        return self._get_obs()
 
     def step(self, action):
-        """Executes an action and returns the next state, reward, done flag, and info."""
-        x, y = self.pacman_position
+        reward = STEP_PENALTY
+        self._move_pacman(action)
 
-        # Update Pac-Man's position based on the action
-        if action == 0 and x > 0 and self.map[x - 1][y] != 1:  # Up
-            x -= 1
-        elif action == 1 and x < self.grid_size[0] - 1 and self.map[x + 1][y] != 1:  # Down
-            x += 1
-        elif action == 2 and y > 0 and self.map[x][y - 1] != 1:  # Left
-            y -= 1
-        elif action == 3 and y < self.grid_size[1] - 1 and self.map[x][y + 1] != 1:  # Right
-            y += 1
+        # Eat pellet / power
+        r, c = self.pacman_pos
+        if self.maze[r,c] == PELLET:
+            reward += PELLET_REWARD
+            self.maze[r,c] = 0
+        elif self.maze[r,c] == POWER:
+            reward += POWER_REWARD
+            self.maze[r,c] = 0
 
-        self.pacman_position = (x, y)
-        reward = 1 if self.map[x][y] == 2 else 0  # Reward for collecting a pellet
-        self.score += reward
-        self.map[x][y] = 0  # Remove pellet after being eaten
+        # Move ghosts
+        for i in range(len(self.ghosts)):
+            self.ghosts[i] = self._move_ghost_random(self.ghosts[i])
 
-        # End the game after collecting 10 pellets
-        done = self.score >= 10
-        return self.map, reward, done, {}
+        # Check collision
+        if any(tuple(self.pacman_pos) == tuple(g) for g in self.ghosts):
+            reward += GHOST_COLLISION_PENALTY
+            self.done = True
+
+        # Check if pellets are done
+        if not (2 in self.maze or 3 in self.maze):
+            self.done = True
+
+        return self._get_obs(), reward, self.done, {}
 
     def render(self, mode='human'):
-        """Renders the game map in the console."""
-        for row in self.map:
-            print(' '.join(map(str, row)))
+        # Typically integrated with Pygame for visual, but left empty for training
+        pass
+
+    def _move_pacman(self, action):
+        # 0=up,1=down,2=left,3=right
+        moves = [(-1,0),(1,0),(0,-1),(0,1)]
+        nr = self.pacman_pos[0] + moves[action][0]
+        nc = self.pacman_pos[1] + moves[action][1]
+        if self.maze[nr,nc] != WALL:
+            self.pacman_pos = [nr,nc]
+
+    def _move_ghost_random(self, pos):
+        moves = [(-1,0),(1,0),(0,-1),(0,1)]
+        dr,dc = random.choice(moves)
+        nr = pos[0]+dr
+        nc = pos[1]+dc
+        if self.maze[nr,nc] != WALL:
+            return [nr,nc]
+        return pos
+
+    def _get_obs(self):
+        return self.maze

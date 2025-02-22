@@ -1,6 +1,14 @@
-import numpy as np
+"""
+Mutation functions for genetic algorithms.
+"""
 
-def mutate_map(map_grid, mutation_rate):
-    mutation_mask = np.random.rand(*map_grid.shape) < mutation_rate
-    map_grid[mutation_mask] = 1 - map_grid[mutation_mask]  # Flip 0 to 1 and vice versa
-    return map_grid
+import random
+
+def mutate(weights, mutation_rate=0.1):
+    """
+    Mutate a list of weights by adding small random changes.
+    """
+    return [w + random.uniform(-mutation_rate, mutation_rate) if random.random() < mutation_rate else w for w in weights]
+
+if __name__ == "__main__":
+    print("Mutated weights:", mutate([0.5, 0.8, 0.3]))

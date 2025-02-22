@@ -1,27 +1,22 @@
-import random
-from config.settings import GHOST_SPEED
+"""
+Ghost Agent for Pac-Man.
+This module defines the behavior of ghosts controlled by AI.
+"""
+
+import numpy as np
 
 class GhostAgent:
-    def __init__(self, strategy="chase"):
-        self.strategy = strategy
+    def __init__(self):
+        # Initialize ghost parameters
+        self.speed = 1.0
 
-    def choose_action(self, pacman_pos, ghost_pos):
-        if self.strategy == "chase":
-            return self.move_towards(pacman_pos, ghost_pos)
-        elif self.strategy == "random":
-            return random.choice([(0,1), (0,-1), (1,0), (-1,0)])
-        elif self.strategy == "ambush":
-            future_pos = [pacman_pos[0] + 2, pacman_pos[1] + 2]
-            return self.move_towards(future_pos, ghost_pos)
-        elif self.strategy == "avoid":
-            return self.move_away_from(pacman_pos, ghost_pos)
+    def choose_direction(self, ghost_pos, pacman_pos, maze):
+        # Simple chase algorithm: move towards Pac-Man
+        direction = np.sign(np.array(pacman_pos) - np.array(ghost_pos))
+        return direction.tolist()
 
-    def move_towards(self, target, current):
-        dx = int((target[0] - current[0]) > 0) - int((target[0] - current[0]) < 0)
-        dy = int((target[1] - current[1]) > 0) - int((target[1] - current[1]) < 0)
-        return dx, dy
-
-    def move_away_from(self, target, current):
-        dx = int((target[0] - current[0]) < 0) - int((target[0] - current[0]) > 0)
-        dy = int((target[1] - current[1]) < 0) - int((target[1] - current[1]) > 0)
-        return dx, dy
+if __name__ == "__main__":
+    # Test ghost agent
+    agent = GhostAgent()
+    direction = agent.choose_direction([5, 5], [10, 10], None)
+    print("Chosen direction:", direction)

@@ -1,17 +1,28 @@
 import pygame
+from config import settings
 
-class Pacman:
-    def __init__(self, position):
-        self.position = position
+class Player:
+    def __init__(self, start_pos):
+        self.row, self.col = start_pos
+        self.speed = settings.PACMAN_SPEED
+        self.color = settings.YELLOW
 
-    def get_action(self):
+    def update(self, maze):
         keys = pygame.key.get_pressed()
+        delta_r, delta_c = 0, 0
         if keys[pygame.K_UP]:
-            return 0
+            delta_r = -1
         elif keys[pygame.K_DOWN]:
-            return 1
+            delta_r = 1
         elif keys[pygame.K_LEFT]:
-            return 2
+            delta_c = -1
         elif keys[pygame.K_RIGHT]:
-            return 3
-        return -1  # No action
+            delta_c = 1
+
+        new_r = self.row + delta_r
+        new_c = self.col + delta_c
+
+        # Check if it's not a wall
+        if maze[new_r, new_c] != settings.WALL:
+            self.row = new_r
+            self.col = new_c

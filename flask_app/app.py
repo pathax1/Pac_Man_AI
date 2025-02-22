@@ -1,16 +1,7 @@
-from flask import Flask, render_template
-import subprocess
+from flask import Flask
+from flask_app import create_app
 
-app = Flask(__name__)
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/play')
-def play():
-    subprocess.Popen(["python", r"C:\Users\Autom\PycharmProjects\Pac_Man_AI\game\game_controller.py"])
-    return "<h1>Game Started! Check the Pygame window.</h1>"
+app = create_app()
 
 if __name__ == "__main__":
     app.run(debug=True)

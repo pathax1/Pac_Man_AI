@@ -1,13 +1,18 @@
 import pygame
 
-class Sound:
+class SoundManager:
     def __init__(self):
         pygame.mixer.init()
-        self.eat_sound = pygame.mixer.Sound("assets/sounds/eat.wav")
-        self.death_sound = pygame.mixer.Sound("assets/sounds/death.wav")
+        self.sounds = {
+            'chomp': pygame.mixer.Sound("assets/sounds/pacman_chomp.wav"),
+            'death': pygame.mixer.Sound("assets/sounds/pacman_death.wav"),
+            'beginning': pygame.mixer.Sound("assets/sounds/pacman_beginning.wav"),
+        }
 
-    def play_eat(self):
-        self.eat_sound.play()
+    def play(self, sound_name):
+        if sound_name in self.sounds:
+            self.sounds[sound_name].play()
 
-    def play_death(self):
-        self.death_sound.play()
+if __name__ == "__main__":
+    sm = SoundManager()
+    sm.play('chomp')

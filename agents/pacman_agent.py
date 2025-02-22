@@ -1,22 +1,21 @@
-import random
+"""
+Pac-Man Agent
+This agent controls Pac-Man's movements in the game.
+"""
+
 import numpy as np
 
 class PacmanAgent:
-    def __init__(self, actions=[0, 1, 2, 3], epsilon=0.1, alpha=0.5, gamma=0.9):
-        self.actions = actions
-        self.epsilon = epsilon
-        self.alpha = alpha
-        self.gamma = gamma
-        self.q_table = {}
+    def __init__(self):
+        self.speed = 1.0
+        self.direction = [0, 0]
 
-    def choose_action(self, state):
-        if random.random() < self.epsilon or state not in self.q_table:
-            return random.choice(self.actions)
-        return max(self.q_table[state], key=self.q_table[state].get)
+    def decide_move(self, observation):
+        # Example logic: move randomly
+        moves = [[0, -1], [0, 1], [-1, 0], [1, 0]]
+        return moves[np.random.randint(0, len(moves))]
 
-    def update(self, state, action, reward, next_state):
-        self.q_table.setdefault(state, {a: 0 for a in self.actions})
-        self.q_table.setdefault(next_state, {a: 0 for a in self.actions})
-        predict = self.q_table[state][action]
-        target = reward + self.gamma * max(self.q_table[next_state].values())
-        self.q_table[state][action] += self.alpha * (target - predict)
+if __name__ == "__main__":
+    agent = PacmanAgent()
+    move = agent.decide_move(None)
+    print("Pac-Man move:", move)

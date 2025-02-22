@@ -1,78 +1,95 @@
-import pygame
-import torch
 import numpy as np
-from environment.pacman_env import PacmanEnv
-from models.dqn import DQN
+import pygame
+import random
+import torch
+
+from config.settings import (
+    MAZE_LAYOUT, MAZE_WIDTH, MAZE_HEIGHT, TILE_SIZE,
+    WALL, PELLET, POWER
+)
 from game.display import Display
-from game.player import Pacman
-from game.ghost import Ghost
+from models.dqn import DQN
 
 class GameController:
     def __init__(self):
-        pygame.init()
+        self.maze = np.array(MAZE_LAYOUT, dtype=int)
+        self.width_px = MAZE_WIDTH * TILE_SIZE
+        self.height_px = MAZE_HEIGHT * TILE_SIZE
 
-        # Initialize Pac-Man environment
-        self.env = PacmanEnv()
+        # Pac-Man near bottom center
+        self.pacman_pos = [23, 13]
+        # Four ghosts in ghost house
+        self.ghosts = [[15,12],[15,13],[15,14],[15,15]]
+        self.running = True
 
-        # Load trained DQN model
-        input_dim = np.prod(self.env.observation_space.shape)
-        output_dim = self.env.action_space.n
-        self.policy_net = DQN(input_dim, output_dim)
+        # Try to load DQN
+        self.model = DQN(MAZE_WIDTH*MAZE_HEIGHT, 4)
         try:
-            self.policy_net.load_state_dict(torch.load("models/dqn_model.pth"))
-            print("✅ Trained model loaded successfully.")
+            self.model.load_state_dict(torch.load("dqn_model.pth", map_location="cpu"))
+            self.model.eval()
+            print("Loaded DQN model from dqn_model.pth. Pac-Man is AI-controlled.")
+            self.ai_control = True
         except FileNotFoundError:
-            print("❌ Trained model not found! Please train the model first using 'train/train_dqn.py'.")
-            exit()
+            print("No dqn_model.pth found. Pac-Man moves randomly.")
+            self.ai_control = False
 
-        self.policy_net.eval()  # Set to evaluation mode
-
-        # Initialize game display and clock
-        self.display = Display(self.env.grid_size)
-        self.clock = pygame.time.Clock()
-
-        # Initialize Pac-Man and ghosts
-        self.pacman = Pacman(self.env.pacman_position)
-        self.ghosts = [Ghost(pos) for pos in self.env.ghost_positions]
+        self.display = Display(self)
 
     def run(self):
-        state = self.env.reset().flatten()  # Reset environment and flatten observation
-        running = True
+        while self.running:
+            self._handle_events()
+            self._update()
+            self.display.draw()
+        self.display.quit()
 
-        while running:
-            self.clock.tick(10)  # Control FPS
+    def _handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
 
-            # Use trained model to select best action
-            state_tensor = torch.FloatTensor(state)
-            with torch.no_grad():
-                action = self.policy_net(state_tensor).argmax().item()
+    def _update(self):
+        # Pac-Man's action
+        if self.ai_control:
+            action = self._choose_action_dqn()
+        else:
+            action = random.randint(0,3)
 
-            # Take action in environment
-            next_state, reward, done, _ = self.env.step(action)
+        self._move_pacman(action)
+        self._move_ghosts()
 
-            # Move ghosts towards Pac-Man
-            for ghost in self.ghosts:
-                ghost.move_towards(self.env.pacman_position, self.env.map)
+        # Check ghost collision
+        if any(tuple(self.pacman_pos) == tuple(g) for g in self.ghosts):
+            print("Pac-Man was caught by a ghost!")
+            self.running = False
 
-            # Render the updated game state
-            self.display.render(
-                self.env.map,
-                self.env.pacman_position,
-                [ghost.position for ghost in self.ghosts]
-            )
+        # If no pellets remain
+        if not (2 in self.maze or 3 in self.maze):
+            print("All pellets eaten! Level cleared.")
+            self.running = False
 
-            # Update state for next step
-            state = next_state.flatten()
+    def _choose_action_dqn(self):
+        state = torch.FloatTensor(self.maze.flatten()).unsqueeze(0)
+        with torch.no_grad():
+            q_values = self.model(state)
+            action = q_values.argmax().item()
+        return action
 
-            # Event handling to close the game
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT or done:
-                    running = False
+    def _move_pacman(self, action):
+        # 0=up,1=down,2=left,3=right
+        moves = [(-1,0),(1,0),(0,-1),(0,1)]
+        nr = self.pacman_pos[0] + moves[action][0]
+        nc = self.pacman_pos[1] + moves[action][1]
+        if self.maze[nr,nc] != WALL:
+            self.pacman_pos = [nr,nc]
+            # Eat pellet/power
+            if self.maze[nr,nc] in (PELLET, POWER):
+                self.maze[nr,nc] = 0
 
-        print(f"🏆 Final Score: {self.env.score}")
-        pygame.quit()
-
-if __name__ == "__main__":
-    print("🚀 Starting Pac-Man with Trained RL Agent...")
-    game = GameController()
-    game.run()
+    def _move_ghosts(self):
+        moves = [(-1,0),(1,0),(0,-1),(0,1)]
+        for i in range(len(self.ghosts)):
+            r,c = self.ghosts[i]
+            dr,dc = random.choice(moves)
+            nr, nc = r+dr, c+dc
+            if self.maze[nr,nc] != WALL:
+                self.ghosts[i] = [nr,nc]

@@ -1,14 +1,20 @@
 import random
+import pygame
+from config import settings
 
 class Ghost:
-    def __init__(self, position):
-        self.position = position
+    def __init__(self, start_pos):
+        self.row, self.col = start_pos
+        self.speed = settings.GHOST_SPEED
+        self.color = settings.RED
 
-    def move_towards(self, target, game_map):
-        x, y = self.position
-        tx, ty = target
-        possible_moves = [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]
-        valid_moves = [pos for pos in possible_moves if game_map[pos[0]][pos[1]] != 1]
-
-        if valid_moves:
-            self.position = min(valid_moves, key=lambda pos: abs(pos[0] - tx) + abs(pos[1] - ty))
+    def update(self, maze):
+        # Move randomly
+        action = random.choice([0,1,2,3])  # up, down, left, right
+        delta = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        new_r = self.row + delta[action][0]
+        new_c = self.col + delta[action][1]
+        # Check if it's a wall
+        if maze[new_r, new_c] != settings.WALL:
+            self.row = new_r
+            self.col = new_c
