@@ -1,10 +1,10 @@
 """
-Configuration settings for Pac-Man AI with an arcade-like maze layout.
+Arcade-like Pac-Man settings with an arcade-like maze layout.
 """
 
 import os
 
-# Paths to tile images (update if needed)
+# Paths to tile images (ensure these paths point to valid image files)
 ASSETS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets")
 TILE_ASSETS = {
     "wall": os.path.join(ASSETS_DIR, "tiles", "wall.png"),
@@ -27,11 +27,12 @@ PELLET = 2
 POWER = 3    # Power pellet
 
 # Maze and Screen Settings
-TILE_SIZE = 16
+# Increase TILE_SIZE to make the grid larger (e.g., from 16 to 32)
+TILE_SIZE = 32
 MAZE_WIDTH = 28
 MAZE_HEIGHT = 31
-SCREEN_WIDTH = MAZE_WIDTH * TILE_SIZE  # 448 px
-SCREEN_HEIGHT = MAZE_HEIGHT * TILE_SIZE  # 496 px
+SCREEN_WIDTH = MAZE_WIDTH * TILE_SIZE  # 28*32 = 896 px
+SCREEN_HEIGHT = MAZE_HEIGHT * TILE_SIZE  # 31*32 = 992 px
 FPS = 60
 
 # Rewards
@@ -45,16 +46,15 @@ PACMAN_SPEED = 1
 GHOST_SPEED = 1
 
 # Expanded MAZE_LAYOUT: 31 rows × 28 columns
-# This is a simplified approximation of a classic Pac-Man maze.
-# 1 = wall, 2 = pellet, 3 = power pellet, 0 = empty/floor.
+# (This layout is an approximation—feel free to tweak it.)
 MAZE_LAYOUT = [
-    [1]*28,  # Row 0: Top border (all walls)
-    [1,3] + [2]*24 + [3,1],  # Row 1: Border with power pellets in corners
+    [1]*28,  # Row 0: Top border
+    [1,3] + [2]*24 + [3,1],  # Row 1
     [1,2] + [1]*24 + [2,1],  # Row 2
     [1,2,1] + [0]*22 + [1,2,1],  # Row 3
     [1,2,1,0] + [1]*20 + [0,1,2,1],  # Row 4
     [1,2,1,0] + [2]*20 + [0,1,2,1],  # Row 5
-    [1,2,1,0] + ([2,1]*10) + [0,1,2,1],  # Row 6: [2,1]*10 gives 20 elements
+    [1,2,1,0] + ([2,1]*10) + [0,1,2,1],  # Row 6
     [1,2,1,0] + [0]*20 + [0,1,2,1],  # Row 7
     [1,2,1,0] + [2]*20 + [0,1,2,1],  # Row 8
     [1,2,1,0] + [1]*20 + [0,1,2,1],  # Row 9
@@ -73,10 +73,10 @@ MAZE_LAYOUT = [
     [1,2,1,0] + [1]*20 + [0,1,2,1],  # Row 22
     [1,2,1,0] + [0]*20 + [0,1,2,1],  # Row 23
     [1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1],  # Row 24
-    [1,3] + [2]*24 + [3,1],  # Row 25: Same as row 1
-    [1]*28,  # Row 26: Bottom border (all walls)
+    [1,3] + [2]*24 + [3,1],  # Row 25
+    [1]*28,  # Row 26
     [1,3] + [2]*24 + [3,1],  # Row 27
     [1,2] + [1]*24 + [2,1],  # Row 28
     [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],  # Row 29
-    [1]*28,  # Row 30: Bottom border (all walls)
+    [1]*28,  # Row 30: Bottom border
 ]

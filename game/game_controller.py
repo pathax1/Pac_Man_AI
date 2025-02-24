@@ -2,10 +2,10 @@ import numpy as np
 import pygame
 import random
 import torch
-
 from config.settings import (
     MAZE_LAYOUT, MAZE_WIDTH, MAZE_HEIGHT, TILE_SIZE,
-    WALL, PELLET, POWER
+    WALL, PELLET, POWER,
+    PELLET_REWARD, POWER_REWARD
 )
 from game.display import Display
 from models.dqn import DQN
@@ -18,11 +18,12 @@ class GameController:
 
         # Pac-Man near bottom center
         self.pacman_pos = [23, 13]
-        # Four ghosts in ghost house
-        self.ghosts = [[15,12],[15,13],[15,14],[15,15]]
+        # 4 ghosts in the ghost house
+        self.ghosts = [[14,13],[14,14],[15,13],[15,14]]
         self.running = True
+        self.score = 0
 
-        # Try to load DQN
+        # Load DQN if available
         self.model = DQN(MAZE_WIDTH*MAZE_HEIGHT, 4)
         try:
             self.model.load_state_dict(torch.load("dqn_model.pth", map_location="cpu"))
@@ -48,7 +49,7 @@ class GameController:
                 self.running = False
 
     def _update(self):
-        # Pac-Man's action
+        # Decide action
         if self.ai_control:
             action = self._choose_action_dqn()
         else:
@@ -62,7 +63,7 @@ class GameController:
             print("Pac-Man was caught by a ghost!")
             self.running = False
 
-        # If no pellets remain
+        # If no pellets remain, end game
         if not (2 in self.maze or 3 in self.maze):
             print("All pellets eaten! Level cleared.")
             self.running = False
@@ -80,10 +81,14 @@ class GameController:
         nr = self.pacman_pos[0] + moves[action][0]
         nc = self.pacman_pos[1] + moves[action][1]
         if self.maze[nr,nc] != WALL:
+            # If pellet or power pellet
+            if self.maze[nr,nc] == PELLET:
+                self.score += PELLET_REWARD
+            elif self.maze[nr,nc] == POWER:
+                self.score += POWER_REWARD
+
             self.pacman_pos = [nr,nc]
-            # Eat pellet/power
-            if self.maze[nr,nc] in (PELLET, POWER):
-                self.maze[nr,nc] = 0
+            self.maze[nr,nc] = 0  # remove the pellet/power
 
     def _move_ghosts(self):
         moves = [(-1,0),(1,0),(0,-1),(0,1)]
