@@ -1,6 +1,4 @@
-torch>=1.7.0
-numpy
+pygame
 gym
-flask
-tqdm
-opencv-python
+numpy
+torch
