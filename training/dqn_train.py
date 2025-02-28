@@ -1,15 +1,19 @@
-# training/dqn_train.py
-
-import numpy as np
+import sys
 import os
+import numpy as np  # ✅ Import NumPy
 from environment.game import PacmanGame
-from agents.dqn_agent import DQNAgent
+from agents.dqn_agent import DQNAgent  # ✅ Import DQNAgent
 
-def train_dqn(episodes=500):
+# Ensure the parent directory is in the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+def train_dqn(episodes=50):
     env = PacmanGame()
-    state_size = len(env.get_state())  # For example, 12
+    state_size = len(env.get_state())
     action_size = 4
     agent = DQNAgent(state_size, action_size)
+
+    print("[DEBUG] Starting DQN Training...")
 
     for e in range(episodes):
         state = env.reset()
@@ -18,7 +22,6 @@ def train_dqn(episodes=500):
         total_reward = 0
 
         while not done:
-            env.render()  # Render the GUI so you can see the game
             action = agent.get_action(state)
             next_state, reward, done, _ = env.step(action)
             next_state = np.array(next_state, dtype=np.float32)
@@ -34,22 +37,36 @@ def train_dqn(episodes=500):
 
     env.close()
 
-    # Use the absolute path for your source root folder
-    source_root = r"C:\Users\Autom\PycharmProjects\Pac_Man_AI"
-    if not os.path.exists(source_root):
-        os.makedirs(source_root)
-    save_path = os.path.join(source_root, "dqn_pacman.pth")
-    print("Attempting to save model to:", save_path)
-    try:
-        agent.save(save_path)
-    except Exception as e:
-        print("Error encountered during model saving:", e)
+    print("[DEBUG] Training finished, preparing to save model...")
 
-    # Confirm the file exists
+    # Ensure directory exists before saving
+    save_dir = os.path.join(os.getcwd(), "TrainedModel")
+    os.makedirs(save_dir, exist_ok=True)
+
+    save_path = os.path.join(save_dir, "dqn_pacman.pth")
+    print(f"[DEBUG] Attempting to call agent.save() with path: {save_path}")
+
+    try:
+        print("[DEBUG] Manually calling save() now...")
+        agent.save(save_path)
+        print("[DEBUG] agent.save() function executed.")
+    except Exception as e:
+        print("[ERROR] Error while saving model:", e)
+
+    # Manually list files in TrainedModel directory
+    print("[DEBUG] Checking if the file exists in TrainedModel/")
+    print("Files in TrainedModel:", os.listdir(save_dir))
+
     if os.path.exists(save_path):
-        print("Model saved successfully at:", save_path)
+        print(f"[SUCCESS] Model saved successfully at: {save_path}")
     else:
-        print("Error: Model file not found after saving. Check your agent.save() method and file permissions.")
+        print("[ERROR] Model file not found after saving.")
+
+    # Test writing a file to check permissions
+    test_path = os.path.join(save_dir, "test_file.txt")
+    with open(test_path, "w") as f:
+        f.write("Testing file permissions")
+    print(f"[DEBUG] Test file written successfully: {test_path}")
 
 if __name__ == "__main__":
-    train_dqn(episodes=500)
+    train_dqn()
