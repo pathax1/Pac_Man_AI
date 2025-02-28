@@ -1,4 +1,0 @@
-pygame
-gym
-numpy
-torch
