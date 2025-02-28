@@ -1,3 +1,5 @@
+# agents/dqn_agent.py
+
 import random
 import numpy as np
 from collections import deque
@@ -31,6 +33,8 @@ class DQNAgent:
         self.epsilon_decay = 0.995
 
         self.memory = deque(maxlen=replay_size)
+
+        # Use GPU if available
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.model = DQNNetwork(state_size, action_size).to(self.device)
@@ -82,14 +86,10 @@ class DQNAgent:
 
     def save(self, filename):
         try:
-            print(f"[DEBUG] Attempting to save model to: {filename}")
-            if self.model is None:
-                print("[ERROR] Model is None, cannot save.")
-                return
             torch.save(self.model.state_dict(), filename)
-            print(f"[DEBUG] Model saved successfully at: {filename}")
+            print(f"[DQNAgent] Saved model file at: {filename}")
         except Exception as e:
-            print("[ERROR] Error while saving the model:", e)
+            print("Error while saving the model:", e)
 
     def load(self, filename):
         self.model.load_state_dict(torch.load(filename, map_location=self.device))
