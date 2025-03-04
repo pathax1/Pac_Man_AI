@@ -1,10 +1,8 @@
 # environment/game.py
-
 import pygame
 import os
 import sys
 import random
-
 
 # Import your constants and BFS function:
 from .constants import *
@@ -56,29 +54,29 @@ class PacmanGame:
 
         # Maze layout: 23 rows, each exactly 21 characters
         self.layout = [
-            "111111111111111111111",  # Row 0
-            "1...................1",  # Row 1
-            "1.11.111111.111111.11",  # Row 2
-            "1.3.....1......1....1",  # Row 3
-            "1.11.1.1.111111.1.111",  # Row 4
-            "1....1.......1...1...",  # Row 5
-            "1111.1111.1111.1111.1",  # Row 6
-            "1..........1........1",  # Row 7
-            "1.1111.111111.1111.11",  # Row 8
-            "1.1...............1.1",  # Row 9
-            "1.1.1111.111111.1.1.1",  # Row 10
-            "1.1.1...........1.1.1",  # Row 11
-            "1.1.1.111111111.1.1.1",  # Row 12
-            "1.3...............3.1",  # Row 13
-            "1.1111.111111.1111.11",  # Row 14
-            "1........1..........1",  # Row 15
-            "1111111.1.11111.11111",  # Row 16
-            "1..........1........1",  # Row 17
-            "1.11.111111.111111.11",  # Row 18
-            "1....3...1......1...1",  # Row 19
-            "1.11.1.1.11111.1.11.1",  # Row 20
-            "1...................1",  # Row 21
-            "111111111111111111111",  # Row 22
+            "111111111111111111111",  # Row 0 (Top border)
+            "1.........3.........1",  # Row 1 (Power pellets at top corners)
+            "1.111.1111.1111.111.1",  # Row 2
+            "1.................1.1",  # Row 3
+            "1.1.1.111111111.1.1.1",  # Row 4
+            "1...1....11....1....1",  # Row 5 ✅ (Checked: 21 characters)
+            "111.1.11.11.11.1..111",  # Row 6 ✅ (Checked: 21 characters)
+            "1...1.1.......1...1.1",  # Row 7 ✅ (Fixed: Now exactly 21 characters!)
+            "1.111.1.11111.1.111.1",  # Row 8
+            "1...................1",  # Row 9
+            "1.111.1 11 11 1.111.1",  # Row 10 (Ghost House - Top)
+            "1.1...11     11...1.1",  # Row 11 (Ghost House - Middle)
+            "1.1.1.11     11.1.1.1",  # Row 12 (Ghost House - Bottom)
+            "1.1...1.11111.1...1.1",  # Row 13
+            "1.111.1       1.111.1",  # Row 14
+            "1.......11111.......1",  # Row 15
+            "1.111.11.11111.11.111",  # Row 16
+            "1...1...........1...1",  # Row 17
+            "1.1.1.11111.1111..1.1",  # Row 18
+            "1.1...............1.1",  # Row 19
+            "1.1.1111.11111..111.1",  # Row 20
+            "1.........3.........1",  # Row 21 (Power pellets at bottom corners)
+            "111111111111111111111"  # Row 22 (Bottom border)
         ]
 
         # Debug: Print row lengths for sanity check
@@ -220,7 +218,6 @@ class PacmanGame:
         Move a single ghost according to its behavior (chase, ambush, random, scatter).
         BFS logic is used for 'chase' or fallback.
         """
-        # Ghost moves only if cooldown is 0. Otherwise, decrement cooldown first.
         if ghost["cooldown"] > 0:
             ghost["cooldown"] -= 1
             return
@@ -229,7 +226,6 @@ class PacmanGame:
         dr, dc = 0, 0
 
         if behavior == "chase":
-            # BFS path to Pac-Man
             dr, dc = bfs(
                 (ghost["row"], ghost["col"]),
                 (self.pacman_row, self.pacman_col),
@@ -238,7 +234,6 @@ class PacmanGame:
             ghost["cooldown"] = 0
 
         elif behavior == "ambush":
-            # Attempt to guess Pac-Man's future position
             target_r = self.pacman_row + random.choice([-1, 0, 1])
             target_c = self.pacman_col + random.choice([-1, 0, 1])
             dr, dc = bfs(
@@ -249,7 +244,6 @@ class PacmanGame:
             ghost["cooldown"] = 1
 
         elif behavior == "random":
-            # Move in a random valid direction
             possible_moves = []
             for move in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                 new_r = ghost["row"] + move[0]
@@ -261,7 +255,6 @@ class PacmanGame:
             ghost["cooldown"] = 2
 
         elif behavior == "scatter":
-            # Move away from Pac-Man
             possible_moves = []
             for move in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                 new_r = ghost["row"] + move[0]
@@ -275,7 +268,6 @@ class PacmanGame:
             ghost["cooldown"] = 2
 
         else:
-            # Default fallback = chase
             dr, dc = bfs(
                 (ghost["row"], ghost["col"]),
                 (self.pacman_row, self.pacman_col),
@@ -287,43 +279,35 @@ class PacmanGame:
         ghost["col"] += dc
 
     def get_bfs_grid(self):
-        """
-        Return a grid suitable for BFS, marking walls as 1, free paths as 0.
-        This is used by the BFS function to find paths around walls.
-        """
         bfs_grid = []
         for r in range(self.rows):
             row_data = []
             for c in range(self.cols):
-                # 1 if it's a wall, else 0
                 row_data.append(1 if self.current_grid[r][c] == 1 else 0)
             bfs_grid.append(row_data)
         return bfs_grid
 
     def is_wall(self, r, c):
-        """Check if position (r, c) is a wall or out of bounds."""
         if r < 0 or r >= self.rows or c < 0 or c >= self.cols:
             return True
         return self.current_grid[r][c] == 1
 
     def get_state(self):
         """
-        Construct the state vector that your DQN sees:
-        - Pac-Man (row, col)
-        - Each ghost (row, col)
-        - Whether Pac-Man is powered
+        Construct the state vector that the agent sees:
+        - Pac-Man position (row, col)
+        - Each ghost's position (row, col)
+        - Powered flag (1 if powered, 0 otherwise)
         - Pellets left
         """
         state = [self.pacman_row, self.pacman_col]
         for ghost in self.ghosts:
-            state.append(ghost["row"])
-            state.append(ghost["col"])
+            state.extend([ghost["row"], ghost["col"]])
         state.append(1 if self.powered else 0)
         state.append(self.pellets_left)
         return tuple(state)
 
     def render(self):
-        """Draw the walls, pellets, Pac-Man, ghosts, and score on-screen."""
         self.screen.fill(BLACK)
         for r in range(self.rows):
             for c in range(self.cols):
@@ -345,7 +329,6 @@ class PacmanGame:
         else:
             self.screen.blit(self.pacman_img, (px, py))
 
-        # Draw each ghost
         for ghost in self.ghosts:
             gx = ghost["col"] * TILE_SIZE
             gy = ghost["row"] * TILE_SIZE
@@ -354,7 +337,6 @@ class PacmanGame:
             else:
                 self.screen.blit(self.ghost_sprites[ghost["name"]], (gx, gy))
 
-        # Score text
         font = pygame.font.SysFont(None, 30)
         text = font.render(f"Score: {self.score}", True, WHITE)
         self.screen.blit(text, (20, SCREEN_HEIGHT - 40))
@@ -363,11 +345,9 @@ class PacmanGame:
         self.clock.tick(FPS)
 
     def play_sound(self, sound):
-        """Play a sound effect if available."""
         if sound:
             sound.play()
 
     def close(self):
-        """Clean up Pygame resources."""
         pygame.quit()
         sys.exit()

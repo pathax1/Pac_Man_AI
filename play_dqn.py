@@ -5,7 +5,7 @@ from agents.dqn_agent import DQNAgent
 from training.dqn_train import preprocess_observation  # ✅ Now available!
 
 # Path to the trained model
-MODEL_PATH = "TrainedModel/dqn_pacman.pth"
+MODEL_PATH = "dqn_pacman.pth"
 
 
 def play_trained_agent():

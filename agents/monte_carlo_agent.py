@@ -1,51 +1,36 @@
 # agents/monte_carlo_agent.py
-
-import numpy as np
 import random
+import numpy as np
 from collections import defaultdict
 
 class MonteCarloAgent:
-    def __init__(self, state_size, action_size,
-                 gamma=0.99, epsilon=1.0, epsilon_min=0.01, epsilon_decay=0.995):
-        self.state_size = state_size
-        self.action_size = action_size
-        self.gamma = gamma
+    def __init__(self, n_actions, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.1):
+        self.n_actions = n_actions
         self.epsilon = epsilon
-        self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
-
+        self.epsilon_min = epsilon_min
         self.returns_sum = defaultdict(float)
         self.returns_count = defaultdict(int)
-        self.q_table = defaultdict(lambda: np.zeros(action_size))
-
+        self.Q = defaultdict(float)
         self.episode = []
 
-    def get_action(self, state):
+    def select_action(self, state):
         if random.random() < self.epsilon:
-            return random.randrange(self.action_size)
-        qs = self.q_table[state]
-        return np.argmax(qs)
+            return random.randint(0, self.n_actions - 1)
+        q_values = [self.Q[(state, a)] for a in range(self.n_actions)]
+        return int(np.argmax(q_values))
 
-    def start_episode(self):
-        self.episode = []
-
-    def record_transition(self, state, action, reward):
+    def store_transition(self, state, action, reward):
         self.episode.append((state, action, reward))
 
-    def end_episode(self):
+    def update(self):
         G = 0
-        visited = set()
-
-        for t in reversed(range(len(self.episode))):
-            s, a, r = self.episode[t]
-            G = self.gamma * G + r
-            if (s, a) not in visited:
-                visited.add((s, a))
-                self.returns_sum[(s, a)] += G
-                self.returns_count[(s, a)] += 1
-                self.q_table[s][a] = (
-                    self.returns_sum[(s, a)] / self.returns_count[(s, a)]
-                )
-
+        for state, action, reward in reversed(self.episode):
+            G = reward + G
+            key = (state, action)
+            self.returns_sum[key] += G
+            self.returns_count[key] += 1
+            self.Q[key] = self.returns_sum[key] / self.returns_count[key]
+        self.episode = []
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
