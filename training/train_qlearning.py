@@ -4,6 +4,7 @@ import numpy as np
 from environment.pacman_env import PacmanEnv
 from agents.qlearning_agent import QLearningAgent
 from config import NUM_EPISODES
+import pickle
 
 def train_qlearning(level="simple"):
     env = PacmanEnv(level=level)
@@ -18,8 +19,6 @@ def train_qlearning(level="simple"):
         state = env.reset()
         done = False
         total_reward = 0
-
-        # Convert state to a Python tuple for dict-based Q
         s_tuple = tuple(map(int, state))
 
         while not done:
@@ -31,23 +30,19 @@ def train_qlearning(level="simple"):
             total_reward += reward
             s_tuple = ns_tuple
 
-        # Decay epsilon
         agent.decay_epsilon()
         episode_rewards.append(total_reward)
 
         if total_reward > best_reward:
             best_reward = total_reward
-            # Save best Q to a file (we can pickle it)
-            import pickle
             with open(f"qlearning_{level}_best.pkl", "wb") as f:
                 pickle.dump(agent.Q, f)
 
+        # ✅ Log progress every 100 episodes
         if ep % 100 == 0:
-            print(f"[Q-Learning] Episode {ep}, Reward: {total_reward:.2f}, Epsilon: {agent.epsilon:.3f}")
+            print(f"[Q-Learning] Episode {ep + 1}/{NUM_EPISODES} | Reward: {total_reward:.2f} | Pellets Consumed: {env.game.pellets_consumed} | Survival Time: {env.game.survival_time} | Epsilon: {agent.epsilon:.3f}")
 
     env.close()
-    # Final Q
-    import pickle
     with open(f"qlearning_{level}_final.pkl", "wb") as f:
         pickle.dump(agent.Q, f)
 

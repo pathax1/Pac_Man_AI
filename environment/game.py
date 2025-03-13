@@ -97,17 +97,26 @@ class PacmanGame:
         self.current_grid = [row[:] for row in self.grid]
         self.pellets_left = self.total_pellets
 
-        self.pacman_row, self.pacman_col = 1, 1   # Starting position
+        self.pacman_row, self.pacman_col = 1, 1  # Starting position
         self.powered = False
         self.power_timer = 0
 
-        # Initialize four ghosts in or near the center
+        # Initialize counters
+        self.survival_time = 0
+        self.pellets_consumed = 0
+
+        # Initialize ghosts
         self.ghosts = [
-            {"name": "blinky", "row": 11, "col": 10, "behavior": "chase",   "cooldown": 5},
-            {"name": "pinky",  "row": 11, "col": 9,  "behavior": "ambush",  "cooldown": 5},
-            {"name": "inky",   "row": 12, "col": 10, "behavior": "random",  "cooldown": 10},
-            {"name": "clyde",  "row": 12, "col": 9,  "behavior": "scatter", "cooldown": 10},
+            {"name": "blinky", "row": 11, "col": 10, "behavior": "chase", "cooldown": 5},
+            {"name": "pinky", "row": 11, "col": 9, "behavior": "ambush", "cooldown": 5},
+            {"name": "inky", "row": 12, "col": 10, "behavior": "random", "cooldown": 10},
+            {"name": "clyde", "row": 12, "col": 9, "behavior": "scatter", "cooldown": 10},
         ]
+
+        self.done = False
+        self.score = 0
+        self.current_grid = [row[:] for row in self.grid]
+        self.pellets_left = self.total_pellets
 
         return self.get_state()
 
@@ -118,19 +127,20 @@ class PacmanGame:
         # Slight negative reward each step
         reward = REWARD_STEP
 
+        # Increment survival time each step
+        self.survival_time += 1
+
         dr, dc = 0, 0
-        if action == 0:   # UP
+        if action == 0:  # UP
             dr = -1
-        elif action == 1: # DOWN
+        elif action == 1:  # DOWN
             dr = 1
-        elif action == 2: # LEFT
+        elif action == 2:  # LEFT
             dc = -1
-        elif action == 3: # RIGHT
+        elif action == 3:  # RIGHT
             dc = 1
 
-        # Check walls
-        nr = self.pacman_row + dr
-        nc = self.pacman_col + dc
+        nr, nc = self.pacman_row + dr, self.pacman_col + dc
         if not self.is_wall(nr, nc):
             self.pacman_row, self.pacman_col = nr, nc
 
@@ -139,6 +149,7 @@ class PacmanGame:
         if cell_val == 2:  # Normal pellet
             self.current_grid[self.pacman_row][self.pacman_col] = 0
             self.pellets_left -= 1
+            self.pellets_consumed += 1  # Track pellets consumed
             reward += REWARD_PELLET
             self.score += REWARD_PELLET
             self.play_sound(self.sound_pellet)
@@ -146,6 +157,7 @@ class PacmanGame:
         elif cell_val == 3:  # Power pellet
             self.current_grid[self.pacman_row][self.pacman_col] = 0
             self.pellets_left -= 1
+            self.pellets_consumed += 1  # Track power pellets consumed
             reward += REWARD_POWER_PELLET
             self.score += REWARD_POWER_PELLET
             self.powered = True
@@ -166,17 +178,19 @@ class PacmanGame:
         for ghost in self.ghosts:
             if ghost["row"] == self.pacman_row and ghost["col"] == self.pacman_col:
                 if self.powered:
-                    # Eat ghost
                     reward += REWARD_GHOST_EATEN
                     self.score += REWARD_GHOST_EATEN
                     self.play_sound(self.sound_eat_ghost)
                     ghost["row"], ghost["col"] = 11, 10
                 else:
-                    # Caught by ghost
                     reward += REWARD_GHOST_COLLISION
                     self.score += REWARD_GHOST_COLLISION
                     self.done = True
                     self.play_sound(self.sound_death)
+
+        # Move ghosts
+        for ghost in self.ghosts:
+            self.move_ghost(ghost)
 
         # Manage power timer
         if self.powered:
@@ -282,6 +296,7 @@ class PacmanGame:
 
     def render(self):
         self.screen.fill(BLACK)
+
         # Draw maze
         for r in range(self.rows):
             for c in range(self.cols):
@@ -292,11 +307,9 @@ class PacmanGame:
                 if cell_val == 1:
                     pygame.draw.rect(self.screen, BLUE, (x, y, TILE_SIZE, TILE_SIZE))
                 elif cell_val == 2:
-                    # Normal pellet
-                    pygame.draw.circle(self.screen, WHITE, (x + TILE_SIZE//2, y + TILE_SIZE//2), 4)
+                    pygame.draw.circle(self.screen, WHITE, (x + TILE_SIZE // 2, y + TILE_SIZE // 2), 4)
                 elif cell_val == 3:
-                    # Power pellet
-                    pygame.draw.circle(self.screen, WHITE, (x + TILE_SIZE//2, y + TILE_SIZE//2), 8)
+                    pygame.draw.circle(self.screen, WHITE, (x + TILE_SIZE // 2, y + TILE_SIZE // 2), 8)
 
         # Draw Pac-Man
         px = self.pacman_col * TILE_SIZE
@@ -315,11 +328,19 @@ class PacmanGame:
             else:
                 self.screen.blit(self.ghost_sprites[ghost["name"]], (gx, gy))
 
-        # Score
         font = pygame.font.SysFont(None, 32)
-        text = font.render(f"Score: {int(self.score)}", True, WHITE)
-        self.screen.blit(text, (10, SCREEN_HEIGHT - 40))
 
+        # Display Score
+        score_text = font.render(f"Score: {int(self.score)}", True, WHITE)
+        self.screen.blit(score_text, (10, SCREEN_HEIGHT - 40))
+
+        # Display Pellets Consumed
+        pellets_text = font.render(f"Pellets: {self.pellets_consumed}", True, WHITE)
+        self.screen.blit(pellets_text, (200, SCREEN_HEIGHT - 40))
+
+        # Display Survival Time
+        survival_text = font.render(f"Survival: {self.survival_time}", True, WHITE)
+        self.screen.blit(survival_text, (400, SCREEN_HEIGHT - 40))
 
         pygame.display.flip()
         self.clock.tick(FPS)
@@ -330,4 +351,4 @@ class PacmanGame:
 
     def close(self):
         pygame.quit()
-        sys.exit()
+        #sys.exit()

@@ -12,9 +12,9 @@ from config import LR, GAMMA, BATCH_SIZE, MEMORY_SIZE, EPS_START, EPS_END, EPS_D
 class DQNNetwork(nn.Module):
     def __init__(self, state_dim, action_dim):
         super(DQNNetwork, self).__init__()
-        self.fc1 = nn.Linear(state_dim, 256)
-        self.fc2 = nn.Linear(256, 256)
-        self.out = nn.Linear(256, action_dim)
+        self.fc1 = nn.Linear(state_dim, 512)
+        self.fc2 = nn.Linear(512, 512)
+        self.out = nn.Linear(512, action_dim)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))

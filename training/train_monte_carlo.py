@@ -3,6 +3,7 @@
 from environment.pacman_env import PacmanEnv
 from agents.monte_carlo_agent import MonteCarloAgent
 from config import MC_EPISODES
+import pickle
 
 def train_monte_carlo(level="simple"):
     env = PacmanEnv(level=level)
@@ -31,19 +32,16 @@ def train_monte_carlo(level="simple"):
 
         if total_reward > best_reward:
             best_reward = total_reward
-            # Save best Q to file
-            import pickle
             with open(f"mc_{level}_best.pkl", "wb") as f:
                 pickle.dump(dict(agent.Q), f)
 
         episode_rewards.append(total_reward)
 
+        # ✅ Log progress every 100 episodes
         if ep % 100 == 0:
-            print(f"[MonteCarlo] Episode {ep}, Reward: {total_reward:.2f}")
+            print(f"[MonteCarlo] Episode {ep + 1}/{MC_EPISODES} | Reward: {total_reward:.2f} | Pellets Consumed: {env.game.pellets_consumed} | Survival Time: {env.game.survival_time} | Epsilon: {agent.epsilon:.3f}")
 
     env.close()
-    # Final
-    import pickle
     with open(f"mc_{level}_final.pkl", "wb") as f:
         pickle.dump(dict(agent.Q), f)
 

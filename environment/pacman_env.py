@@ -34,3 +34,12 @@ class PacmanEnv(gym.Env):
 
     def close(self):
         self.game.close()
+
+    def get_state(self):
+        state = [
+            self.pacman_row, self.pacman_col,
+            *[coord for ghost in self.ghosts for coord in (ghost["row"], ghost["col"])],
+            int(self.powered),
+            self.pellets_left
+        ]
+        return tuple(state)
