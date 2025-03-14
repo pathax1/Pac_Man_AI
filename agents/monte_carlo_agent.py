@@ -1,38 +1,31 @@
-# agents/monte_carlo_agent.py
-
 import numpy as np
 from collections import defaultdict
 from config import MC_GAMMA
 
 class MonteCarloAgent:
-    """
-    On-policy First-Visit Monte Carlo for smaller state spaces.
-    """
-    def __init__(self, action_dim, epsilon=0.1):
+    def __init__(self, action_dim, epsilon=1.0, epsilon_min=0.05, epsilon_decay=0.9995):
         self.action_dim = action_dim
-        self.Q = defaultdict(lambda: 0.0)
+        self.Q = defaultdict(float)
         self.returns = defaultdict(list)
         self.epsilon = epsilon
+        self.epsilon_min = epsilon_min
+        self.epsilon_decay = epsilon_decay
         self.gamma = MC_GAMMA
 
     def select_action(self, state):
-        # Epsilon-greedy
         if np.random.rand() < self.epsilon:
             return np.random.randint(self.action_dim)
-        else:
-            q_vals = [self.Q[(state, a)] for a in range(self.action_dim)]
-            return int(np.argmax(q_vals))
+        q_vals = [self.Q[(state, a)] for a in range(self.action_dim)]
+        return int(np.argmax(q_vals))
 
     def store_episode(self, episode):
-        """
-        episode: list of (state, action, reward) for one complete episode
-        """
-        visited = set()
         G = 0
-        for t in reversed(range(len(episode))):
-            s, a, r = episode[t]
+        visited_pairs = set()
+        for s, a, r in reversed(episode):
             G = self.gamma * G + r
-            if (s, a) not in visited:
+            if (s, a) not in visited_pairs:
                 self.returns[(s, a)].append(G)
                 self.Q[(s, a)] = np.mean(self.returns[(s, a)])
-                visited.add((s, a))
+                visited_pairs.add((s, a))
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay

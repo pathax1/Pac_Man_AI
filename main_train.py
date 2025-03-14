@@ -44,18 +44,18 @@ if __name__ == "__main__":
                 clean_up()
 
         # Train DQN model for all maze complexities
-        for level in levels:
-            print(f"\n=== Preparing DQN Training for {level.capitalize()} Maze ===")
-            try:
-                train_dqn(level=level)
-                print(f"=== Completed DQN Training for {level.capitalize()} Maze ===\n")
-            except Exception as e:
-                print(f"[ERROR] DQN Training for {level.capitalize()} Maze failed: {e}")
-                import traceback
-                traceback.print_exc()
-            finally:
-                print(f"Cleaning up after DQN Training for {level.capitalize()} Maze.")
-                clean_up()
+       # for level in levels:
+            #print(f"\n=== Preparing DQN Training for {level.capitalize()} Maze ===")
+            #try:
+                #train_dqn(level=level)
+               # print(f"=== Completed DQN Training for {level.capitalize()} Maze ===\n")
+            #except Exception as e:
+                #print(f"[ERROR] DQN Training for {level.capitalize()} Maze failed: {e}")
+                #import traceback
+               # traceback.print_exc()
+            #finally:
+               # print(f"Cleaning up after DQN Training for {level.capitalize()} Maze.")
+                #clean_up()
 
         print("✅ All trainings completed successfully!")
 

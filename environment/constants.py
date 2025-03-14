@@ -16,7 +16,7 @@ SCREEN_WIDTH = 21 * TILE_SIZE
 SCREEN_HEIGHT = 23 * TILE_SIZE
 
 # Reward shaping (Improved)
-REWARD_STEP = -0.1                # Small penalty per step (forces faster completion)
+REWARD_STEP = -0.05                # Small penalty per step (forces faster completion)
 REWARD_PELLET = 5.0               # Increased reward for eating a pellet
 REWARD_POWER_PELLET = 10.0        # More valuable power pellets
 REWARD_GHOST_EATEN = 15.0         # Balanced reward for eating ghosts
