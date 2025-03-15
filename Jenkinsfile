@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git credentialsId: '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',
+                git credentialsId: 'a295e9de-c839-4351-bbaa-00b0640e3151',
                     branch: 'main',
                     url: 'git@github.com:pathax1/Pac_Man_AI.git'
             }
