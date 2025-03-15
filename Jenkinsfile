@@ -4,11 +4,13 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/your-repo/pacman-rl.git'
+                git credentialsId: 'a295e9de-c839-4351-bbaa-00b0640e3151',
+                    branch: 'main',
+                    url: 'git@github.com:pathax1/Pac_Man_AI.git'
             }
         }
 
-        stage('Setup Python Environment') {
+        stage('Setup Pythons Environment') {
             steps {
                 sh 'python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt'
             }
