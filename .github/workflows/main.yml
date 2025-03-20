@@ -3,7 +3,7 @@ name: Train Pac-Man AI Model
 on:
   push:
     branches:
-      - main
+      - master  # Now tracking 'master' instead of 'main' or 'brain'
   workflow_dispatch:
 
 jobs:
@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+        with:
+          ref: master  # Ensure the workflow pulls the 'master' branch
 
       - name: Set Up Python
         uses: actions/setup-python@v4
