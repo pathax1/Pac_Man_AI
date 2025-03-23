@@ -295,53 +295,58 @@ class PacmanGame:
         return tuple(state)
 
     def render(self):
+        # Clear the screen
         self.screen.fill(BLACK)
 
-        # Draw maze
+        # Draw maze with clear separation
         for r in range(self.rows):
             for c in range(self.cols):
                 cell_val = self.current_grid[r][c]
                 x = c * TILE_SIZE
                 y = r * TILE_SIZE
 
-                if cell_val == 1:
+                if cell_val == 1:  # Walls
                     pygame.draw.rect(self.screen, BLUE, (x, y, TILE_SIZE, TILE_SIZE))
-                elif cell_val == 2:
-                    pygame.draw.circle(self.screen, WHITE, (x + TILE_SIZE // 2, y + TILE_SIZE // 2), 4)
-                elif cell_val == 3:
-                    pygame.draw.circle(self.screen, WHITE, (x + TILE_SIZE // 2, y + TILE_SIZE // 2), 8)
+                elif cell_val == 2:  # Pellets
+                    pygame.draw.circle(self.screen, WHITE, (x + TILE_SIZE // 2, y + TILE_SIZE // 2), TILE_SIZE // 6)
+                elif cell_val == 3:  # Power pellets
+                    pygame.draw.circle(self.screen, (255, 215, 0), (x + TILE_SIZE // 2, y + TILE_SIZE // 2),
+                                       TILE_SIZE // 4)
 
-        # Draw Pac-Man
+        # Draw Pac-Man with clearer scaling and visibility
         px = self.pacman_col * TILE_SIZE
         py = self.pacman_row * TILE_SIZE
-        if self.powered:
-            self.screen.blit(self.pacman_power_img, (px, py))
-        else:
-            self.screen.blit(self.pacman_img, (px, py))
+        pacman_image = self.pacman_power_img if self.powered else self.pacman_img
+        self.screen.blit(pacman_image, (px, py))
 
-        # Draw ghosts
+        # Draw ghosts with better visual cue during power-up
         for ghost in self.ghosts:
             gx = ghost["col"] * TILE_SIZE
             gy = ghost["row"] * TILE_SIZE
-            if self.powered:
-                self.screen.blit(self.ghost_sprites["vulnerable"], (gx, gy))
-            else:
-                self.screen.blit(self.ghost_sprites[ghost["name"]], (gx, gy))
+            ghost_image = self.ghost_sprites["vulnerable"] if self.powered else self.ghost_sprites[ghost["name"]]
+            self.screen.blit(ghost_image, (gx, gy))
 
-        font = pygame.font.SysFont(None, 32)
+        font = pygame.font.SysFont(None, 36)  # slightly reduced font size for fitting all labels clearly
 
-        # Display Score
+        # Background bar for HUD (ensure enough height)
+        hud_height = 70
+        pygame.draw.rect(self.screen, (50, 50, 50), (0, SCREEN_HEIGHT - hud_height, SCREEN_WIDTH, hud_height))
+
+        # Score
         score_text = font.render(f"Score: {int(self.score)}", True, WHITE)
-        self.screen.blit(score_text, (10, SCREEN_HEIGHT - 40))
+        self.screen.blit(score_text, (15, SCREEN_HEIGHT - 45))
 
-        # Display Pellets Consumed
-        pellets_text = font.render(f"Pellets: {self.pellets_consumed}", True, WHITE)
-        self.screen.blit(pellets_text, (200, SCREEN_HEIGHT - 40))
+        # Pellets consumed (centered)
+        pellets_text = font.render(f"Pellets: {self.pellets_consumed}/{self.total_pellets}", True, WHITE)
+        pellets_text_rect = pellets_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 35))
+        self.screen.blit(pellets_text, pellets_text_rect)
 
-        # Display Survival Time
-        survival_text = font.render(f"Survival: {self.survival_time}", True, WHITE)
-        self.screen.blit(survival_text, (400, SCREEN_HEIGHT - 40))
+        # Survival time (aligned to the right, fully visible)
+        survival_text = font.render(f"Survival Time: {self.survival_time}s", True, WHITE)
+        survival_text_rect = survival_text.get_rect(topright=(SCREEN_WIDTH - 15, SCREEN_HEIGHT - 45))
+        self.screen.blit(survival_text, survival_text_rect)
 
+        # Refresh the display
         pygame.display.flip()
         self.clock.tick(FPS)
 

@@ -3,7 +3,7 @@
 import pygame
 
 # Screen / Grid
-TILE_SIZE = 24
+TILE_SIZE = 36
 FPS = 10
 
 # Colors (RGB)
