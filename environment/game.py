@@ -4,7 +4,6 @@ import pygame
 import sys
 import random
 import os
-
 from .constants import *
 from .bfs import bfs
 from .mazes.simple_maze import SIMPLE_LAYOUT
@@ -89,6 +88,8 @@ class PacmanGame:
 
         self.powered = False
         self.power_timer = 0
+        self.recent_positions = []
+        self.pellet_animations = []
         self.reset()
 
     def reset(self):
@@ -104,6 +105,7 @@ class PacmanGame:
         # Initialize counters
         self.survival_time = 0
         self.pellets_consumed = 0
+        self.recent_positions = []
 
         # Initialize ghosts
         self.ghosts = [
@@ -144,6 +146,14 @@ class PacmanGame:
         if not self.is_wall(nr, nc):
             self.pacman_row, self.pacman_col = nr, nc
 
+            # NEW: Track recent positions (loop detection)
+            current_pos = (self.pacman_row, self.pacman_col)
+            self.recent_positions.append(current_pos)
+            if len(self.recent_positions) > 6:
+                self.recent_positions.pop(0)
+            if self.recent_positions.count(current_pos) > 2:
+                reward += REWARD_LOOP  # Penalize loops
+
         cell_val = self.current_grid[self.pacman_row][self.pacman_col]
 
         if cell_val == 2:  # Normal pellet
@@ -154,6 +164,9 @@ class PacmanGame:
             self.score += REWARD_PELLET
             self.play_sound(self.sound_pellet)
 
+            # Pellet animation tracking
+            self.pellet_animations.append({"pos": (self.pacman_row, self.pacman_col), "timer": 0, "type": cell_val})
+
         elif cell_val == 3:  # Power pellet
             self.current_grid[self.pacman_row][self.pacman_col] = 0
             self.pellets_left -= 1
@@ -163,6 +176,9 @@ class PacmanGame:
             self.powered = True
             self.power_timer = POWER_DURATION
             self.play_sound(self.sound_power_pellet)
+
+            # Pellet animation tracking
+            self.pellet_animations.append({"pos": (self.pacman_row, self.pacman_col), "timer": 0, "type": cell_val})
 
         # Check if level is won
         if self.pellets_left <= 0:
@@ -188,7 +204,7 @@ class PacmanGame:
                     self.done = True
                     self.play_sound(self.sound_death)
 
-        # Move ghosts
+        # Move ghosts again (ensure double move if intended by original design)
         for ghost in self.ghosts:
             self.move_ghost(ghost)
 
@@ -313,19 +329,29 @@ class PacmanGame:
                     pygame.draw.circle(self.screen, (255, 215, 0), (x + TILE_SIZE // 2, y + TILE_SIZE // 2),
                                        TILE_SIZE // 4)
 
-        # Draw Pac-Man with clearer scaling and visibility
+        # Helper function to draw glow around images
+        def draw_with_glow(image, position, glow_color=(255, 255, 0), radius=8):
+            glow_surface = pygame.Surface((TILE_SIZE + radius * 2, TILE_SIZE + radius * 2), pygame.SRCALPHA)
+            pygame.draw.circle(glow_surface, glow_color + (100,), (TILE_SIZE // 2 + radius, TILE_SIZE // 2 + radius),
+                               TILE_SIZE // 2 + radius)
+            glow_rect = glow_surface.get_rect(center=(position[0] + TILE_SIZE // 2, position[1] + TILE_SIZE // 2))
+            self.screen.blit(glow_surface, glow_rect)
+            self.screen.blit(image, position)
+
+        # Draw Pac-Man with glow effect
         px = self.pacman_col * TILE_SIZE
         py = self.pacman_row * TILE_SIZE
         pacman_image = self.pacman_power_img if self.powered else self.pacman_img
-        self.screen.blit(pacman_image, (px, py))
+        draw_with_glow(pacman_image, (px, py), glow_color=(255, 255, 0), radius=8)
 
-        # Draw ghosts with better visual cue during power-up
+        # Draw ghosts with subtle shadow/glow
         for ghost in self.ghosts:
             gx = ghost["col"] * TILE_SIZE
             gy = ghost["row"] * TILE_SIZE
             ghost_image = self.ghost_sprites["vulnerable"] if self.powered else self.ghost_sprites[ghost["name"]]
-            self.screen.blit(ghost_image, (gx, gy))
+            draw_with_glow(ghost_image, (gx, gy), glow_color=(50, 50, 255), radius=6)
 
+        # HUD section remains unchanged from your provided code
         font = pygame.font.SysFont(None, 36)  # slightly reduced font size for fitting all labels clearly
 
         # Background bar for HUD (ensure enough height)
