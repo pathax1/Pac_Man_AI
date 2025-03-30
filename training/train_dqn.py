@@ -4,11 +4,11 @@ from agents.dqn_agent import DQNAgent
 from config import TARGET_UPDATE, NUM_EPISODES
 
 def train_dqn(level="simple"):
-    print(f"\n🔄 Initializing environment for {level.capitalize()} maze...")
+    print(f"Initializing environment for {level.capitalize()} maze...")
 
     # Check if CUDA is causing failures
     if torch.cuda.is_available():
-        print(f"🖥️ Using CUDA device: {torch.cuda.get_device_name(0)}")
+        print(f"🖥 Using CUDA device: {torch.cuda.get_device_name(0)}")
         print(f"🔹 Memory Allocated: {torch.cuda.memory_allocated()} bytes")
         print(f"🔹 Memory Reserved: {torch.cuda.memory_reserved()} bytes")
 
@@ -16,13 +16,13 @@ def train_dqn(level="simple"):
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.n
 
-    print(f"🤖 Initializing DQN agent for {level.capitalize()} maze...")
+    print(f" Initializing DQN agent for {level.capitalize()} maze...")
     agent = DQNAgent(state_dim, action_dim)
     episode_rewards = []
     best_reward = float('-inf')
 
     try:
-        print(f"🚀 Starting DQN training for {level.capitalize()} maze with {NUM_EPISODES} episodes")
+        print(f" Starting DQN training for {level.capitalize()} maze with {NUM_EPISODES} episodes")
         for ep in range(NUM_EPISODES):
             state = env.reset()
             done = False
@@ -55,7 +55,7 @@ def train_dqn(level="simple"):
 
         # Final save
         torch.save(agent.q_net.state_dict(), f"dqn_{level}_final.pth")
-        print(f"✅ Completed training for {level.capitalize()} maze. Final model saved.")
+        print(f" Completed training for {level.capitalize()} maze. Final model saved.")
 
     except Exception as e:
         print(f"[ERROR] DQN Training for {level.capitalize()} Maze failed: {e}")
