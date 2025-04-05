@@ -33,7 +33,7 @@ def run_agent(agent_fn, agent_name, level):
 
             builtins.print = patched_print
 
-            total_episodes = 100000
+            total_episodes = 1000000
             with tqdm(total=total_episodes, desc=f"{agent_name.upper()} - {level}", file=sys.stdout, dynamic_ncols=True) as pbar:
                 def print_hook(*args, **kwargs):
                     msg = " ".join(map(str, args))
@@ -59,12 +59,14 @@ def run_agent(agent_fn, agent_name, level):
 
 if __name__ == "__main__":
     levels = ["simple", "medium", "complex"]
+
     jobs = [
-        #(train_monte_carlo, "montecarlo", level) for level in levels
+        (train_monte_carlo, "montecarlo", level) for level in levels
     ] + [
-       # (train_qlearning, "qlearning", level) for level in levels
+        (train_qlearning, "qlearning", level) for level in levels
     ] + [
-        (train_dqn, "dqn", level) for level in levels
+        #(train_dqn, "dqn", level) for level in levels
+
     ]
 
     try:

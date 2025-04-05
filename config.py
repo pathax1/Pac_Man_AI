@@ -16,7 +16,7 @@ EPS_END = 0.01
 EPS_DECAY = 500
 
 TARGET_UPDATE = 10       # Update target network every N episodes
-NUM_EPISODES = 100000     # Total training episodes
+NUM_EPISODES = 1000000     # Total training episodes
 
 # Q-Learning
 QL_ALPHA = 0.1           # Learning rate for Q-learning
@@ -25,7 +25,7 @@ QL_EPSILON_MIN = 0.01
 QL_EPSILON_DECAY = 0.995
 
 # Monte Carlo
-MC_EPISODES = 100000
+MC_EPISODES = 1000000
 MC_GAMMA = 0.99
 
 # Device configuration: use GPU if available
