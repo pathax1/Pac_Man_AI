@@ -12,10 +12,14 @@ from config import LR, GAMMA, BATCH_SIZE, MEMORY_SIZE, EPS_START, EPS_END, EPS_D
 class DQNNetwork(nn.Module):
     def __init__(self, state_dim, action_dim):
         super(DQNNetwork, self).__init__()
+        #Input Layer
         self.fc1 = nn.Linear(state_dim, 512)
+        #Hidden Layer
         self.fc2 = nn.Linear(512, 512)
+        #Output Layer
         self.out = nn.Linear(512, action_dim)
 
+#Applied Relu Activation function here on the hidden layers and generate outputs of raw Q-Values
     def forward(self, x):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
