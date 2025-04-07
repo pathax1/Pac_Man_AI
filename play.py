@@ -52,7 +52,7 @@ def play_qlearning(level, model_path):
         state, reward, done, _ = env.step(action)
         total_reward += reward
 
-    print(f"Q-Learning Game finished! Total reward: {total_reward:.2f}")
+    print(f"Q-Learning Game finished! Total rewards: {total_reward:.2f}")
     env.close()
 
 def play_montecarlo(level, model_path):
